@@ -373,6 +373,185 @@ def frida_find_classes(package_name: str, pattern: str, device_id: str = "") -> 
     return frida_runner.find_classes(package_name, pattern, device_id or None)
 
 
+# ========== Frida Script Runner (FSR) ==========
+
+
+@mcp.tool()
+def fsr_list_scripts(category: str = "") -> dict:
+    """List available FSR scripts. Categories: android, ios, ssl, root, all"""
+    from pathlib import Path
+    import config
+
+    fsr_dir = config.FRIDA_SCRIPTS_DIR / "fsr"
+    if not fsr_dir.exists():
+        return {"success": False, "error": "FSR scripts not found. Run install_fsr_scripts first."}
+
+    categories = {}
+    for cat_dir in fsr_dir.iterdir():
+        if cat_dir.is_dir():
+            scripts = [f.name for f in cat_dir.glob("*.js")]
+            categories[cat_dir.name] = scripts
+
+    if category and category != "all":
+        if category not in categories:
+            return {"success": False, "error": f"Category '{category}' not found. Available: {list(categories.keys())}"}
+        return {"success": True, "category": category, "scripts": categories[category]}
+
+    return {"success": True, "categories": categories, "total": sum(len(s) for s in categories.values())}
+
+
+@mcp.tool()
+def fsr_run_script(
+    package_name: str,
+    category: str,
+    script_name: str,
+    device_id: str = "",
+    spawn: bool = True,
+    timeout: int = 30,
+) -> dict:
+    """Run a FSR script by category and name. Use fsr_list_scripts to see available scripts."""
+    from pathlib import Path
+    import config
+
+    fsr_dir = config.FRIDA_SCRIPTS_DIR / "fsr" / category / script_name
+    if not fsr_dir.exists():
+        return {"success": False, "error": f"Script not found: {category}/{script_name}"}
+
+    return frida_runner.run_script_file(
+        package_name, str(fsr_dir), device_id or None, spawn, timeout=timeout
+    )
+
+
+@mcp.tool()
+def fsr_run_category(
+    package_name: str,
+    category: str,
+    device_id: str = "",
+    spawn: bool = True,
+    timeout: int = 30,
+) -> dict:
+    """Run all scripts in a FSR category sequentially."""
+    from pathlib import Path
+    import config
+
+    fsr_dir = config.FRIDA_SCRIPTS_DIR / "fsr" / category
+    if not fsr_dir.exists():
+        return {"success": False, "error": f"Category '{category}' not found"}
+
+    scripts = list(fsr_dir.glob("*.js"))
+    if not scripts:
+        return {"success": False, "error": f"No scripts found in category '{category}'"}
+
+    results = []
+    for script in scripts:
+        result = frida_runner.run_script_file(
+            package_name, str(script), device_id or None, spawn, timeout=timeout
+        )
+        results.append({"script": script.name, "result": result})
+
+    return {"success": True, "category": category, "executed": len(results), "results": results}
+
+
+@mcp.tool()
+def fsr_run_ssl_bypass_all(
+    package_name: str,
+    device_id: str = "",
+    spawn: bool = True,
+) -> dict:
+    """Run all SSL bypass scripts from FSR."""
+    from pathlib import Path
+    import config
+
+    ssl_dir = config.FRIDA_SCRIPTS_DIR / "fsr" / "ssl"
+    if not ssl_dir.exists():
+        return {"success": False, "error": "SSL scripts not found"}
+
+    scripts = list(ssl_dir.glob("*.js"))
+    results = []
+    for script in scripts:
+        result = frida_runner.run_script_file(
+            package_name, str(script), device_id or None, spawn, timeout=10
+        )
+        results.append({"script": script.name, "success": result.get("success", False)})
+
+    return {
+        "success": True,
+        "executed": len(results),
+        "bypassed": sum(1 for r in results if r["success"]),
+        "results": results,
+    }
+
+
+@mcp.tool()
+def fsr_update_scripts() -> dict:
+    """Download or update FSR scripts from GitHub."""
+    import subprocess
+    import shutil
+    from pathlib import Path
+    import config
+
+    fsr_dir = config.WORKSPACE_DIR / "Frida-Script-Runner"
+    fsr_scripts = config.FRIDA_SCRIPTS_DIR / "fsr"
+    repo_url = "https://github.com/z3n70/Frida-Script-Runner.git"
+
+    try:
+        if fsr_dir.exists():
+            result = subprocess.run(
+                ["git", "-C", str(fsr_dir), "pull"],
+                capture_output=True, text=True, timeout=60
+            )
+            if result.returncode != 0:
+                return {"success": False, "error": f"Git pull failed: {result.stderr}"}
+            action = "updated"
+        else:
+            result = subprocess.run(
+                ["git", "clone", repo_url, str(fsr_dir), "--depth", "1"],
+                capture_output=True, text=True, timeout=120
+            )
+            if result.returncode != 0:
+                return {"success": False, "error": f"Git clone failed: {result.stderr}"}
+            action = "downloaded"
+
+        scripts_src = fsr_dir / "scripts"
+        if not scripts_src.exists():
+            return {"success": False, "error": "Scripts directory not found in repo"}
+
+        if fsr_scripts.exists():
+            shutil.rmtree(fsr_scripts)
+
+        for category in scripts_src.iterdir():
+            if category.is_dir() and category.name.startswith("Script Directory"):
+                continue
+            if category.is_dir():
+                cat_dst = fsr_scripts / category.name.lower().replace(" ", "-")
+                cat_dst.mkdir(parents=True, exist_ok=True)
+                for js_file in category.glob("*.js"):
+                    shutil.copy2(js_file, cat_dst / js_file.name)
+
+        for js_file in scripts_src.glob("*.js"):
+            cat_name = "misc"
+            for cat in ["android", "ios", "ssl", "root"]:
+                if cat in js_file.name.lower():
+                    cat_name = cat
+                    break
+            cat_dst = fsr_scripts / cat_name
+            cat_dst.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(js_file, cat_dst / js_file.name)
+
+        total = sum(1 for _ in fsr_scripts.rglob("*.js"))
+
+        return {
+            "success": True,
+            "action": action,
+            "total_scripts": total,
+            "path": str(fsr_scripts),
+        }
+    except subprocess.TimeoutExpired:
+        return {"success": False, "error": "Download timed out"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
 @mcp.tool()
 def frida_find_methods(package_name: str, class_name: str, device_id: str = "") -> dict:
     """List all methods of a Java class."""

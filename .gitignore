@@ -4,6 +4,9 @@
 # Downloaded tools
 workspace/tools_bin/
 
+# FSR repository
+workspace/Frida-Script-Runner/
+
 # Python cache
 __pycache__/
 *.pyc
