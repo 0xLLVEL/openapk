@@ -3,6 +3,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).parent
 WORKSPACE_DIR = BASE_DIR / "workspace"
+TOOLS_BIN_DIR = WORKSPACE_DIR / "tools_bin"
 FRIDA_SCRIPTS_DIR = BASE_DIR / "frida_scripts"
 
 APKS_DIR = WORKSPACE_DIR / "apks"
@@ -12,15 +13,15 @@ SMALI_DIR = WORKSPACE_DIR / "smali"
 JARS_DIR = WORKSPACE_DIR / "jars"
 
 ADB_PATH = os.environ.get("ADB_PATH", "adb")
-JADX_PATH = os.environ.get("JADX_PATH", "jadx")
-JADX_GUI_PATH = os.environ.get("JADX_GUI_PATH", "jadx-gui")
-APKTOOL_PATH = os.environ.get("APKTOOL_PATH", "apktool")
-DEX2JAR_PATH = os.environ.get("DEX2JAR_PATH", "d2j-dex2jar.sh")
-APKSIGNER_PATH = os.environ.get("APKSIGNER_PATH", "apksigner")
+JADX_PATH = os.environ.get("JADX_PATH", str(TOOLS_BIN_DIR / "jadx" / "bin" / "jadx.bat"))
+JADX_GUI_PATH = os.environ.get("JADX_GUI_PATH", str(TOOLS_BIN_DIR / "jadx" / "bin" / "jadx-gui.bat"))
+APKTOOL_PATH = os.environ.get("APKTOOL_PATH", str(TOOLS_BIN_DIR / "apktool" / "apktool.jar"))
+DEX2JAR_PATH = os.environ.get("DEX2JAR_PATH", str(TOOLS_BIN_DIR / "dex-tools-v2.4" / "d2j-dex2jar.bat"))
+APKSIGNER_PATH = os.environ.get("APKSIGNER_PATH", str(TOOLS_BIN_DIR / "build-tools" / "apksigner.bat"))
 KEYTOOL_PATH = os.environ.get("KEYTOOL_PATH", "keytool")
-ZIPALIGN_PATH = os.environ.get("ZIPALIGN_PATH", "zipalign")
-AAPT_PATH = os.environ.get("AAPT_PATH", "aapt")
-AAPT2_PATH = os.environ.get("AAPT2_PATH", "aapt2")
+ZIPALIGN_PATH = os.environ.get("ZIPALIGN_PATH", str(TOOLS_BIN_DIR / "build-tools" / "zipalign.exe"))
+AAPT_PATH = os.environ.get("AAPT_PATH", str(TOOLS_BIN_DIR / "build-tools" / "aapt.exe"))
+AAPT2_PATH = os.environ.get("AAPT2_PATH", str(TOOLS_BIN_DIR / "build-tools" / "aapt2.exe"))
 FRIDA_GADGET_PATH = os.environ.get("FRIDA_GADGET_PATH", "frida-gadget")
 JAVA_HOME = os.environ.get("JAVA_HOME", "")
 ANDROID_HOME = os.environ.get("ANDROID_HOME", "")

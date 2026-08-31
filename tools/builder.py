@@ -28,7 +28,7 @@ class APKBuilder:
             dir_name = Path(decoded_dir).name
             output_apk = str(config.WORKSPACE_DIR / "apks" / f"{dir_name}_rebuilt.apk")
 
-        cmd = [self.apktool_path, "b"]
+        cmd = ["java", "-jar", self.apktool_path, "b"]
         if force:
             cmd.append("-f")
         if use_aapt2:

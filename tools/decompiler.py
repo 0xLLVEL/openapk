@@ -54,7 +54,7 @@ class Decompiler:
             apk_name = Path(apk_path).stem
             output_dir = str(config.DECODED_DIR / apk_name)
 
-        cmd = [self.apktool_path, "d"]
+        cmd = ["java", "-jar", self.apktool_path, "d"]
         if force:
             cmd.append("-f")
         if no_src:

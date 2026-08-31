@@ -22,13 +22,13 @@ class APKAnalyzer:
 
         badging = self._dump_badging(apk_path)
         if badging["success"]:
-            info["package"] = self._extract_value(bading["stdout"], "package: name")
-            info["version_code"] = self._extract_value(bading["stdout"], "versionCode")
-            info["version_name"] = self._extract_value(bading["stdout"], "versionName")
-            info["sdk_version"] = self._extract_value(bading["stdout"], "sdkVersion")
-            info["target_sdk"] = self._extract_value(bading["stdout"], "targetSdkVersion")
-            info["application_label"] = self._extract_value(bading["stdout"], "application-label")
-            info["launchable_activity"] = self._extract_value(bading["stdout"], "launchable-activity")
+            info["package"] = self._extract_value(badging["stdout"], "package: name")
+            info["version_code"] = self._extract_value(badging["stdout"], "versionCode")
+            info["version_name"] = self._extract_value(badging["stdout"], "versionName")
+            info["sdk_version"] = self._extract_value(badging["stdout"], "sdkVersion")
+            info["target_sdk"] = self._extract_value(badging["stdout"], "targetSdkVersion")
+            info["application_label"] = self._extract_value(badging["stdout"], "application-label")
+            info["launchable_activity"] = self._extract_value(badging["stdout"], "launchable-activity")
 
         permissions = self.get_permissions(apk_path)
         if permissions["success"]:
