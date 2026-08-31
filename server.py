@@ -13,7 +13,7 @@ from tools import (
     ToolInstaller,
 )
 
-mcp = MCPServer("mobile-pentest")
+mcp = MCPServer("openapk")
 
 adb = ADBManager()
 frida_server = FridaServerManager()
