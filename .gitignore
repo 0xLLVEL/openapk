@@ -1,0 +1,36 @@
+# Virtual environment
+.venv/
+
+# Downloaded tools
+workspace/tools_bin/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# APKs (user files)
+workspace/apks/*
+!workspace/apks/.gitkeep
+
+# Decompiled output
+workspace/decoded/*
+!workspace/decoded/.gitkeep
+
+workspace/java_src/*
+!workspace/java_src/.gitkeep
+
+workspace/smali/*
+!workspace/smali/.gitkeep
+
+workspace/jars/*
+!workspace/jars/.gitkeep
