@@ -55,6 +55,16 @@ class ToolInstaller:
                 "darwin": "uber-apk-signer.jar",
             },
         },
+        "build-tools": {
+            "url": "https://dl.google.com/android/repository/build-tools_r33.0.1-windows.zip",
+            "archive": "zip",
+            "extract_to": "build-tools",
+            "binaries": {
+                "windows": "build-tools/apksigner.bat",
+                "linux": "build-tools/apksigner",
+                "darwin": "build-tools/apksigner",
+            },
+        },
     }
 
     def __init__(self):
@@ -229,6 +239,37 @@ class ToolInstaller:
             "jar": str(jar_path),
         }
 
+    def install_build_tools(self) -> dict:
+        tool_dir = self.TOOLS_DIR / "build-tools"
+        
+        if tool_dir.exists():
+            apksigner = tool_dir / "apksigner.bat"
+            zipalign = tool_dir / "zipalign.exe"
+            aapt = tool_dir / "aapt.exe"
+            if apksigner.exists() and zipalign.exists() and aapt.exists():
+                return {"success": True, "message": "Build tools already installed", "path": str(tool_dir)}
+
+        info = self.DOWNLOAD_URLS["build-tools"]
+        archive_path = self.TOOLS_DIR / "build-tools.zip"
+
+        if not self._download_file(info["url"], archive_path):
+            return {"success": False, "stderr": "Failed to download build-tools"}
+
+        if not self._extract_zip(archive_path, self.TOOLS_DIR):
+            return {"success": False, "stderr": "Failed to extract build-tools"}
+
+        extracted_dir = self.TOOLS_DIR / "android-13"
+        if extracted_dir.exists() and not tool_dir.exists():
+            extracted_dir.rename(tool_dir)
+
+        archive_path.unlink(missing_ok=True)
+
+        return {
+            "success": True,
+            "message": "Build tools installed successfully (apksigner, zipalign, aapt)",
+            "path": str(tool_dir),
+        }
+
     def install_all_missing(self) -> dict:
         from tools.checker import SystemChecker
 
@@ -247,6 +288,10 @@ class ToolInstaller:
         if apktool_status["status"] != "ok":
             results["apktool"] = self.install_apktool()
 
+        build_tools_status = checker.check_build_tools()
+        if build_tools_status["status"] != "ok":
+            results["build-tools"] = self.install_build_tools()
+
         return {
             "success": True,
             "installed": results,
@@ -259,6 +304,7 @@ class ToolInstaller:
             "dex2jar": self.install_dex2jar,
             "apktool": self.install_apktool,
             "uber-apk-signer": self.install_uber_apk_signer,
+            "build-tools": self.install_build_tools,
         }
 
         if tool_name not in installers:

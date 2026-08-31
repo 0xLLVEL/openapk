@@ -158,6 +158,23 @@ class SystemChecker:
         
         return {"status": "ok", "path": path, "version": "", "hint": ""}
 
+    def check_build_tools(self) -> dict:
+        build_tools_dir = TOOLS_BIN_DIR / "build-tools"
+        apksigner = build_tools_dir / "apksigner.bat"
+        zipalign = build_tools_dir / "zipalign.exe"
+        aapt = build_tools_dir / "aapt.exe"
+        
+        path = shutil.which(config.APKSIGNER_PATH)
+        if not path and apksigner.exists():
+            path = str(apksigner)
+        
+        if not path:
+            result = {"status": "missing", "path": None, "version": None, "hint": "Run install_build_tools to download Android SDK Build Tools"}
+            self.errors.append("apksigner: not found in PATH")
+            return result
+        
+        return {"status": "ok", "path": str(build_tools_dir), "version": "", "hint": ""}
+
     def check_apksigner(self) -> dict:
         return self._check_tool(
             "apksigner",
@@ -288,10 +305,8 @@ class SystemChecker:
                 "dex2jar": self.check_dex2jar(),
             },
             "signing": {
-                "apksigner": self.check_apksigner(),
+                "build_tools": self.check_build_tools(),
                 "keytool": self.check_keytool(),
-                "zipalign": self.check_zipalign(),
-                "aapt": self.check_aapt(),
             },
             "emulators": {
                 "nox": self.check_nox(),

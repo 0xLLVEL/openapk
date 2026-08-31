@@ -34,6 +34,7 @@ EMULATOR_CONFIGS = {
     "nox": {
         "name": "Nox Player",
         "adb_paths": [
+            r"D:\Program Files\Nox\bin\nox_adb.exe",
             r"C:\Program Files (x86)\nox\bin\nox_adb.exe",
             r"C:\Program Files\nox\bin\nox_adb.exe",
             os.path.expanduser(r"~\AppData\Local\Nox\bin\nox_adb.exe"),

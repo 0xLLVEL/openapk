@@ -123,6 +123,12 @@ def install_uber_apk_signer() -> dict:
 
 
 @mcp.tool()
+def install_build_tools() -> dict:
+    """Download and install Android SDK Build Tools (apksigner, zipalign, aapt)."""
+    return installer.install_build_tools()
+
+
+@mcp.tool()
 def install_all_missing() -> dict:
     """Auto-detect and install all missing tools."""
     return installer.install_all_missing()
