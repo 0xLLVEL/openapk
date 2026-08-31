@@ -11,6 +11,7 @@ from tools import (
     APKSigner,
     SystemChecker,
     ToolInstaller,
+    SmaliParser,
 )
 
 mcp = MCPServer("openapk")
@@ -25,6 +26,7 @@ builder = APKBuilder()
 signer = APKSigner()
 checker = SystemChecker()
 installer = ToolInstaller()
+smali_parser = SmaliParser()
 
 
 # ========== System Compatibility Check ==========
@@ -791,6 +793,57 @@ def apk_generate_keystore(
 def apk_list_keystores() -> dict:
     """List available keystores (debug + custom)."""
     return signer.list_keystores()
+
+
+# ========== Smali Tools ==========
+
+
+@mcp.tool()
+def smali_parse(smali_path: str) -> dict:
+    """Parse a Smali file and extract class info, methods, fields."""
+    return smali_parser.parse_smali_file(smali_path)
+
+
+@mcp.tool()
+def smali_list_classes(apk_name: str, pattern: str = "") -> dict:
+    """List all classes in a decompiled APK's smali directory."""
+    return smali_parser.list_classes(apk_name, pattern)
+
+
+@mcp.tool()
+def smali_search(apk_name: str, pattern: str) -> dict:
+    """Search for patterns in Smali code (regex supported)."""
+    return smali_parser.search_smali(apk_name, pattern)
+
+
+@mcp.tool()
+def smali_get_code(smali_path: str, start_line: int = 1, end_line: int = 0) -> dict:
+    """Get Smali code from a file with line numbers."""
+    return smali_parser.get_smali_code(smali_path, start_line, end_line)
+
+
+@mcp.tool()
+def smali_analyze_method(smali_path: str, method_name: str) -> dict:
+    """Analyze a specific method: instructions, registers, access flags."""
+    return smali_parser.analyze_method(smali_path, method_name)
+
+
+@mcp.tool()
+def smali_xref_method(apk_name: str, class_name: str, method_name: str) -> dict:
+    """Find cross-references to a method (who calls it)."""
+    return smali_parser.get_method_xref(apk_name, class_name, method_name)
+
+
+@mcp.tool()
+def smali_xref_field(apk_name: str, class_name: str, field_name: str) -> dict:
+    """Find cross-references to a field (who reads/writes it)."""
+    return smali_parser.get_field_xref(apk_name, class_name, field_name)
+
+
+@mcp.tool()
+def smali_stats(apk_name: str) -> dict:
+    """Get statistics: total files, lines, methods, fields, packages."""
+    return smali_parser.get_apk_stats(apk_name)
 
 
 if __name__ == "__main__":

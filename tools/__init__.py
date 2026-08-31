@@ -13,6 +13,7 @@ from tools.builder import APKBuilder
 from tools.signer import APKSigner
 from tools.checker import SystemChecker
 from tools.installer import ToolInstaller
+from tools.smali_parser import SmaliParser
 
 __all__ = [
     "ADBManager",
@@ -25,4 +26,5 @@ __all__ = [
     "APKSigner",
     "SystemChecker",
     "ToolInstaller",
+    "SmaliParser",
 ]
